@@ -7,12 +7,9 @@ import os
 import time
 
 import openai
-from openai import OpenAI
 import pandas as pd
 from json_repair import repair_json
-
-
-system_messages = "You are an AI assistant that helps people solve their questions."
+from openai import OpenAI
 
 
 def query_gpt(inputs, args):
@@ -23,13 +20,15 @@ def query_gpt(inputs, args):
         Input ID (str): the id that specifics the input.
     """
 
-    messages = [{
-        "role": "user",
-        "content": inputs["query_input"],
-    }]
+    messages = [
+        {
+            "role": "user",
+            "content": inputs["query_input"],
+        }
+    ]
 
     client = OpenAI(api_key=args.openai_api_key, base_url=args.llm_url)
-    
+
     succuss = True
     while succuss:
         try:
@@ -44,28 +43,30 @@ def query_gpt(inputs, args):
         except openai.APIConnectionError as e:
             time.sleep(10)
         except openai.OpenAIError as e:
-            print(f'ERROR: {e}')
+            print(f"ERROR: {e}")
             return f"Unsuccessful: {e.message}"
-        
-    return response, inputs['index']
+
+    return response, inputs["index"]
 
 
-def save_output(results, dataset_name, file_name='output.json'):
-    output_folder = os.path.join('./output', dataset_name)
+def save_output(results, dataset_name, file_name="output.json"):
+    output_folder = os.path.join("./output", dataset_name)
     os.makedirs(output_folder, exist_ok=True)
-    json.dump(results, open(os.path.join(output_folder, file_name), 'w'))
+    json.dump(results, open(os.path.join(output_folder, file_name), "w"))
+
 
 def read_results(data_path):
-    if data_path.endswith('.xlsx'):
+    if data_path.endswith(".xlsx"):
         results = pd.read_excel(data_path)
-        results = results.to_dict(orient='records')
-    elif data_path.endswith('.json') or data_path.endswith('.jsonl'):
-        with open(data_path, 'r', encoding='utf-8') as f:
+        results = results.to_dict(orient="records")
+    elif data_path.endswith(".json") or data_path.endswith(".jsonl"):
+        with open(data_path, "r", encoding="utf-8") as f:
             for line in f:
-                results = json.loads(line)
+                results = json.loads(line)  # NOTE: It doesn't work for jsonl
         return results
     else:
         raise ValueError(f"Unsupported file type: {data_path}")
+
 
 def extract_json_string(text):
     """
@@ -74,8 +75,8 @@ def extract_json_string(text):
     """
     if not text:
         return None
-    text = text.replace('\\', '\\\\')
-    start = text.find('[')
+    text = text.replace("\\", "\\\\")
+    start = text.find("[")
     if start == -1:
         return None
     stack = []
@@ -83,13 +84,13 @@ def extract_json_string(text):
     in_quotes = False
     for i in range(start, len(text)):
         if text[i] == '"':
-            if i == 0 or text[i - 1] != '\\':
+            if i == 0 or text[i - 1] != "\\":
                 in_quotes = not in_quotes
         if in_quotes:
             continue
-        if text[i] == '[':
+        if text[i] == "[":
             stack.append(i)
-        elif text[i] == ']':
+        elif text[i] == "]":
             if stack:
                 stack.pop()
                 if not stack:
@@ -97,5 +98,5 @@ def extract_json_string(text):
                     break
     if end == -1:
         return None
-    json_str = text[start:end + 1]
+    json_str = text[start : end + 1]
     return repair_json(json_str)

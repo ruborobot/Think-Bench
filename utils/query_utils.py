@@ -13,11 +13,7 @@ BACKENDS = {
     "deepseek": {"stream": False, "reasoning_from_api": True},
     "deepseek_distill": {"stream": True, "reasoning_from_api": True},
     "qwq": {"stream": True, "reasoning_from_api": True},
-    "qwen3": {
-        "stream": True,
-        "reasoning_from_api": True,
-        "extra_body": {"enable_thinking": True},
-    },
+    "qwen3": {"stream": True, "reasoning_from_api": True, "extra_body": {"enable_thinking": True}},
     "claude": {"stream": False, "reasoning_from_api": False},
     "grok3": {"stream": False, "reasoning_from_api": True},
     "ernie": {"stream": True, "reasoning_from_api": True},
